@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PelviControl">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>PelviControl</title>
+<style>
+:root{
+  --bg:#0f172a; --card:#111827; --muted:#94a3b8; --text:#f8fafc;
+  --accent:#38bdf8; --accent2:#22c55e; --warn:#f59e0b; --danger:#ef4444;
+  --border:#334155;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+body{background:linear-gradient(180deg,#0b1220,#111827)}
+.wrap{max-width:720px;margin:0 auto;padding:calc(18px + env(safe-area-inset-top)) 16px calc(42px + env(safe-area-inset-bottom))}
+h1{font-size:28px;margin:4px 0 2px}
+.sub{color:var(--muted);margin:0 0 18px}
+.card{background:rgba(17,24,39,.98);border:1px solid var(--border);border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 8px 30px rgba(0,0,0,.18)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.space{justify-content:space-between}
+label{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
+select,input,textarea,button{font:inherit;border-radius:12px;border:1px solid var(--border)}
+select,input[type="date"],textarea{display:block;width:100%;min-height:48px;padding:11px 12px;background:#0b1220;color:var(--text);opacity:1}
+input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.95}
+button{min-height:48px;padding:12px 16px;background:#1e293b;color:white;cursor:pointer;font-weight:700;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+button.primary{background:var(--accent);color:#062033;border:none}
+button.good{background:var(--accent2);color:#052e16;border:none}
+button.danger{background:var(--danger);border:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:520px){.grid2{grid-template-columns:1fr}}
+.big{text-align:center;padding:22px 10px;border-radius:18px;background:#0b1220;border:1px solid var(--border)}
+.phase{font-size:30px;font-weight:800}
+.timer{font-size:58px;font-weight:900;margin:8px 0}
+.counter{color:var(--muted)}
+.progressbar{height:10px;border-radius:20px;background:#0b1220;overflow:hidden;margin-top:12px}
+.progressbar>div{height:100%;background:var(--accent);width:0%}
+.pill{display:inline-block;padding:6px 10px;border:1px solid var(--border);border-radius:999px;color:#cbd5e1;font-size:13px}
+.exercise{padding:11px 0;border-bottom:1px solid #1f2937}
+.exercise:last-child{border-bottom:none}
+.exercise b{display:block;margin-bottom:3px}
+.small{font-size:13px;color:var(--muted);line-height:1.45}
+.done{color:#86efac}
+.hidden{display:none}
+textarea{min-height:90px;resize:vertical}
+.status{margin-top:10px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;background:#0b1220;color:#cbd5e1;font-size:13px}
+.install{border-color:#0ea5e9}
+footer{color:var(--muted);font-size:12px;line-height:1.5;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>PelviControl</h1>
+  <p class="sub">Programme progressif de contrôle du plancher pelvien — 8 semaines</p>
+
+  <div class="card install" id="installCard">
+    <div class="row space">
+      <div>
+        <b>Installer PelviControl</b>
+        <div class="small">Sur iPhone : Safari → Partager → Ajouter à l’écran d’accueil.</div>
+      </div>
+      <span class="pill">PWA</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="grid2">
+      <div>
+        <label for="week">Semaine</label>
+        <select id="week">
+          <option value="1">Semaine 1</option><option value="2">Semaine 2</option>
+          <option value="3">Semaine 3</option><option value="4">Semaine 4</option>
+          <option value="5">Semaine 5</option><option value="6">Semaine 6</option>
+          <option value="7">Semaine 7</option><option value="8">Semaine 8</option>
+        </select>
+      </div>
+      <div>
+        <label for="sessionDate">Date de la séance</label>
+        <input id="sessionDate" type="date">
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:12px">
+      <button type="button" id="todayBtn">Aujourd’hui</button>
+      <button type="button" id="prevDayBtn">Jour précédent</button>
+      <button type="button" id="nextDayBtn">Jour suivant</button>
+    </div>
+
+    <div class="status" id="selectedStatus"></div>
+    <div class="progressbar"><div id="overallProgress"></div></div>
+    <div class="row space" style="margin-top:8px">
+      <span class="small" id="progressText"></span>
+      <span class="pill" id="weekFocus"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row space">
+      <div>
+        <div class="small">Séance guidée</div>
+        <h2 style="margin:4px 0 0">Exercices quotidiens</h2>
+      </div>
+      <span class="pill" id="sessionEstimate">≈ 5 min</span>
+    </div>
+
+    <div class="big" style="margin-top:14px">
+      <div class="phase" id="phase">Prêt</div>
+      <div class="timer" id="timer">00:00</div>
+      <div class="counter" id="counter">Appuie sur Démarrer</div>
+    </div>
+
+    <div class="row" style="margin-top:14px">
+      <button type="button" class="primary" id="startBtn">Démarrer</button>
+      <button type="button" id="pauseBtn">Pause</button>
+      <button type="button" class="danger" id="stopBtn">Arrêter</button>
+      <button type="button" id="resetBtn">Réinitialiser</button>
+      <button type="button" class="good" id="completeBtn">Marquer terminé</button>
+    </div>
+
+    <p class="small" style="margin-top:12px">
+      Un bip marque chaque changement de phase. Le premier appui sur « Démarrer » active le son sur iPhone.
+    </p>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Séquence de cette semaine</h3>
+    <div id="routineList"></div>
+  </div>
+
+  <div class="card hidden" id="stopStartCard">
+    <div class="row space">
+      <h3 style="margin:0">Entraînement Stop‑Start</h3>
+      <span class="pill" id="ssFrequency"></span>
+    </div>
+    <p class="small">Monte progressivement en excitation, puis arrête avant le point de non-retour afin d’apprendre à faire redescendre l’excitation.</p>
+    <div class="big">
+      <div class="small">Niveau d'excitation visé</div>
+      <div class="phase" id="ssTarget">6–7 / 10</div>
+      <p class="small" id="ssInstructions"></p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Notes de la séance</h3>
+    <textarea id="notes" placeholder="Ex. tension, facilité à relâcher, contrôle, observations..."></textarea>
+    <div class="small" style="margin-top:7px">Sauvegarde automatique pour la date sélectionnée.</div>
+  </div>
+
+  <div class="card">
+    <h3 style="margin-top:0">Progression</h3>
+    <div id="history"></div>
+  </div>
+
+  <footer>
+    Cet outil sert à guider des exercices de bien-être et ne remplace pas une évaluation médicale ou de physiothérapie.
+    Arrête les exercices et consulte un professionnel si tu développes douleur pelvienne, difficulté à uriner, engourdissement,
+    ou aggravation importante des symptômes.
+  </footer>
+</div>
+
+<script>
+const programs = {
+  1:{focus:"Contrôle & relâchement", estimate:"≈ 5 min", slowC:3, slowR:6, slowN:10, fastC:1, fastR:2, fastN:5, reverseN:5, reverseSec:6, stop:false,
+     list:["10 contractions lentes : 3 s contracter / 6 s relâcher","5 contractions rapides : 1 s / 2 s","5 respirations lentes avec relâchement du périnée"]},
+  2:{focus:"Contrôle & relâchement", estimate:"≈ 5 min", slowC:3, slowR:6, slowN:10, fastC:1, fastR:2, fastN:5, reverseN:5, reverseSec:6, stop:false,
+     list:["10 contractions lentes : 3 s contracter / 6 s relâcher","5 contractions rapides : 1 s / 2 s","5 respirations lentes avec relâchement du périnée"]},
+  3:{focus:"Endurance + excitation", estimate:"≈ 6 min", slowC:5, slowR:7, slowN:10, fastC:1, fastR:2, fastN:10, reverseN:5, reverseSec:6, stop:true, ss:"1–2×/sem.",
+     list:["10 contractions lentes : 5 s / 7 s","10 contractions rapides : 1 s / 2 s","5 reverse Kegels / respirations","Stop‑Start 1–2 fois cette semaine"]},
+  4:{focus:"Endurance + excitation", estimate:"≈ 6 min", slowC:5, slowR:7, slowN:10, fastC:1, fastR:2, fastN:10, reverseN:5, reverseSec:6, stop:true, ss:"1–2×/sem.",
+     list:["10 contractions lentes : 5 s / 7 s","10 contractions rapides : 1 s / 2 s","5 reverse Kegels / respirations","Stop‑Start 1–2 fois cette semaine"]},
+  5:{focus:"Maîtrise", estimate:"≈ 7 min", slowC:8, slowR:8, slowN:10, fastC:1, fastR:2, fastN:10, reverseN:5, reverseSec:7, stop:true, ss:"2×/sem.",
+     list:["10 contractions lentes : jusqu’à 8 s / 8 s","10 contractions rapides","5 reverse Kegels / respirations","Stop‑Start 2 fois cette semaine, zone 5–7/10"]},
+  6:{focus:"Maîtrise", estimate:"≈ 7 min", slowC:8, slowR:8, slowN:10, fastC:1, fastR:2, fastN:10, reverseN:5, reverseSec:7, stop:true, ss:"2×/sem.",
+     list:["10 contractions lentes : jusqu’à 8 s / 8 s","10 contractions rapides","5 reverse Kegels / respirations","Stop‑Start 2 fois cette semaine, zone 5–7/10"]},
+  7:{focus:"Transfert", estimate:"≈ 5 min", slowC:5, slowR:7, slowN:8, fastC:1, fastR:2, fastN:8, reverseN:6, reverseSec:7, stop:true, ss:"Selon activité",
+     list:["Entretien : 8 contractions lentes","8 contractions rapides","6 reverse Kegels / respirations","Priorité au relâchement et au contrôle pendant l’activité sexuelle"]},
+  8:{focus:"Transfert", estimate:"≈ 5 min", slowC:5, slowR:7, slowN:8, fastC:1, fastR:2, fastN:8, reverseN:6, reverseSec:7, stop:true, ss:"Selon activité",
+     list:["Entretien : 8 contractions lentes","8 contractions rapides","6 reverse Kegels / respirations","Priorité au relâchement et au contrôle pendant l’activité sexuelle"]}
+};
+
+const $ = id => document.getElementById(id);
+const weekEl=$("week"), dateEl=$("sessionDate"), notesEl=$("notes");
+const phaseEl=$("phase"), timerEl=$("timer"), counterEl=$("counter");
+const startBtn=$("startBtn"), pauseBtn=$("pauseBtn"), stopBtn=$("stopBtn"), resetBtn=$("resetBtn"), completeBtn=$("completeBtn");
+
+let state={};
+try { state=JSON.parse(localStorage.getItem("pelvicontrol-pwa")||"{}"); } catch(e){}
+state.week=state.week||1;
+state.date=state.date||new Date().toISOString().slice(0,10);
+state.done=state.done||{};
+state.notes=state.notes||{};
+weekEl.value=String(state.week);
+dateEl.value=state.date;
+
+let steps=[], idx=0, remaining=0, ticker=null, paused=false, audioCtx=null;
+
+function k(){ return `${dateEl.value}|w${weekEl.value}`; }
+function save(){ state.week=+weekEl.value; state.date=dateEl.value; localStorage.setItem("pelvicontrol-pwa",JSON.stringify(state)); }
+
+function ensureAudio(){
+  try{
+    if(!audioCtx) audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==="suspended") audioCtx.resume();
+  }catch(e){}
+}
+function beep(freq=700,dur=.12){
+  try{
+    ensureAudio();
+    const osc=audioCtx.createOscillator(), gain=audioCtx.createGain();
+    osc.frequency.value=freq;
+    gain.gain.setValueAtTime(.14,audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+dur);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime+dur);
+  }catch(e){}
+}
+
+function buildSteps(){
+  const p=programs[+weekEl.value], s=[];
+  for(let i=1;i<=p.slowN;i++){
+    s.push({phase:"Contracte",sec:p.slowC,count:`Contraction lente ${i}/${p.slowN}`,f:850});
+    s.push({phase:"Relâche",sec:p.slowR,count:`Relâchement ${i}/${p.slowN}`,f:520});
+  }
+  for(let i=1;i<=p.fastN;i++){
+    s.push({phase:"Contracte",sec:p.fastC,count:`Rapide ${i}/${p.fastN}`,f:900});
+    s.push({phase:"Relâche",sec:p.fastR,count:`Relâche ${i}/${p.fastN}`,f:520});
+  }
+  for(let i=1;i<=p.reverseN;i++) s.push({phase:"Respire & relâche",sec:p.reverseSec,count:`Reverse Kegel ${i}/${p.reverseN}`,f:620});
+  return s;
+}
+function fmt(s){ const m=Math.floor(s/60), x=s%60; return `${String(m).padStart(2,"0")}:${String(x).padStart(2,"0")}`; }
+function showStep(){
+  if(idx>=steps.length){ finish(); return; }
+  const s=steps[idx];
+  phaseEl.textContent=s.phase; remaining=s.sec; timerEl.textContent=fmt(remaining); counterEl.textContent=s.count; beep(s.f);
+}
+function tick(){
+  if(paused) return;
+  remaining--;
+  timerEl.textContent=fmt(Math.max(remaining,0));
+  if(remaining<=0){ idx++; showStep(); }
+}
+function start(){
+  ensureAudio();
+  if(!steps.length || idx>=steps.length){ steps=buildSteps(); idx=0; showStep(); }
+  paused=false;
+  if(!ticker) ticker=setInterval(tick,1000);
+  startBtn.textContent="En cours…";
+  pauseBtn.textContent="Pause";
+}
+function pauseResume(){
+  if(!ticker) return;
+  paused=!paused;
+  pauseBtn.textContent=paused?"Reprendre":"Pause";
+  if(!paused) ensureAudio();
+}
+function stop(){
+  if(ticker){ clearInterval(ticker); ticker=null; }
+  paused=false; steps=[]; idx=0; remaining=0;
+  phaseEl.textContent="Arrêté"; timerEl.textContent="00:00"; counterEl.textContent="Appuie sur Démarrer pour recommencer";
+  startBtn.textContent="Démarrer"; pauseBtn.textContent="Pause";
+}
+function reset(){
+  stop();
+  phaseEl.textContent="Prêt"; counterEl.textContent="Appuie sur Démarrer";
+}
+function finish(){
+  if(ticker){ clearInterval(ticker); ticker=null; }
+  phaseEl.textContent="Terminé ✓"; timerEl.textContent="00:00"; counterEl.textContent="Séance complétée";
+  startBtn.textContent="Démarrer"; pauseBtn.textContent="Pause";
+  beep(1050,.25);
+}
+function formatDateFR(iso){
+  if(!iso) return "Aucune date";
+  const [y,m,d]=iso.split("-").map(Number);
+  return new Date(y,m-1,d).toLocaleDateString("fr-CA",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+}
+function updateHistory(){
+  const entries=Object.keys(state.done).filter(x=>state.done[x]);
+  $("overallProgress").style.width=`${Math.min(entries.length/56*100,100)}%`;
+  $("progressText").textContent=`${entries.length} séance${entries.length!==1?"s":""} complétée${entries.length!==1?"s":""}`;
+  let html="";
+  for(let w=1;w<=8;w++){
+    const c=entries.filter(x=>x.endsWith(`|w${w}`)).length;
+    html+=`<div class="exercise"><b>Semaine ${w}: <span class="${c>=7?"done":""}">${c} séance${c!==1?"s":""}</span></b><div class="small">${programs[w].focus}</div></div>`;
+  }
+  $("history").innerHTML=html;
+  completeBtn.textContent=state.done[k()]?"✓ Terminé pour cette date":"Marquer terminé";
+}
+function render(){
+  const p=programs[+weekEl.value];
+  $("weekFocus").textContent=p.focus;
+  $("sessionEstimate").textContent=p.estimate;
+  $("routineList").innerHTML=p.list.map(x=>`<div class="exercise"><b>${x}</b></div>`).join("");
+  $("selectedStatus").textContent=`${formatDateFR(dateEl.value)} — semaine ${weekEl.value}`;
+  const ss=$("stopStartCard");
+  ss.classList.toggle("hidden",!p.stop);
+  if(p.stop){
+    $("ssFrequency").textContent=p.ss;
+    $("ssTarget").textContent=(+weekEl.value<=4)?"6–7 / 10":"5–7 / 10";
+    $("ssInstructions").textContent=(+weekEl.value<=4)
+      ?"Monte progressivement vers 6–7, arrête, respire et relâche jusqu’à revenir vers 4–5, puis recommence 2–3 fois."
+      :"Reste dans une zone contrôlable. Si la montée accélère : ralentis ou arrête, expire lentement et relâche le périnée.";
+  }
+  notesEl.value=state.notes[k()]||"";
+  updateHistory(); save();
+}
+function shiftDay(delta){
+  const [y,m,d]=(dateEl.value||new Date().toISOString().slice(0,10)).split("-").map(Number);
+  const dt=new Date(y,m-1,d); dt.setDate(dt.getDate()+delta);
+  dateEl.value=`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,"0")}-${String(dt.getDate()).padStart(2,"0")}`;
+  render();
+}
+
+startBtn.addEventListener("click",start);
+pauseBtn.addEventListener("click",pauseResume);
+stopBtn.addEventListener("click",stop);
+resetBtn.addEventListener("click",reset);
+completeBtn.addEventListener("click",()=>{ state.done[k()]=!state.done[k()]; save(); updateHistory(); });
+weekEl.addEventListener("change",render);
+dateEl.addEventListener("change",render);
+notesEl.addEventListener("input",()=>{ state.notes[k()]=notesEl.value; save(); });
+$("todayBtn").addEventListener("click",()=>{ dateEl.value=new Date().toISOString().slice(0,10); render(); });
+$("prevDayBtn").addEventListener("click",()=>shiftDay(-1));
+$("nextDayBtn").addEventListener("click",()=>shiftDay(1));
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+}
+if(window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone){
+  $("installCard").classList.add("hidden");
+}
+render();
+</script>
+</body>
+</html>
